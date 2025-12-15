@@ -27,21 +27,23 @@ print_log() {
 move_custom_cert() {
     if [ "$(ls -A /data/local/tmp/cert)" ]; then
         cp -f /data/local/tmp/cert/* $MODDIR/certificates
-        cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
+        # 只复制到系统证书文件夹，不再复制到用户文件夹
+        # cp -f /data/local/tmp/cert/* /data/misc/user/0/cacerts-added/
     else
         print_log "The directory '/data/local/tmp/cert' is empty."
     fi
     print_log "Install /data/local/tmp/cert status:$?"
 }
 
-fix_user_permissions() {
-    # "Fix permissions of the system certificate directory"
-    chown -R root:root /data/misc/user/0/cacerts-added/
-    chmod -R 666 /data/misc/user/0/cacerts-added/
-    chown system:system /data/misc/user/0/cacerts-added
-    chmod 755 /data/misc/user/0/cacerts-added
-    print_log "fix user certificate permissions status:$?"
-}
+# 不再需要修改用户证书文件夹权限，已注释掉
+# fix_user_permissions() {
+#     # "Fix permissions of the system certificate directory"
+#     chown -R root:root /data/misc/user/0/cacerts-added/
+#     chmod -R 666 /data/misc/user/0/cacerts-added/
+#     chown system:system /data/misc/user/0/cacerts-added
+#     chmod 755 /data/misc/user/0/cacerts-added
+#     print_log "fix user certificate permissions status:$?"
+# }
 
 fix_system_permissions() {
     chown root:root /system/etc/security/cacerts
@@ -107,7 +109,8 @@ if [ "$sdk_version_number" -le 33 ]; then
     cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates/
     # Android 13 or lower versions perform
     move_custom_cert
-    fix_user_permissions
+    # 不再修改用户证书文件夹权限
+    # fix_user_permissions
     compatible
 
     selinux_context=$(ls -Zd /system/etc/security/cacerts | awk '{print $1}')
@@ -137,7 +140,8 @@ else
     print_log "Backup /data/misc/user/0/cacerts-added"
     cp -u /data/misc/user/0/cacerts-added/* $MODDIR/certificates
     move_custom_cert
-    fix_user_permissions
+    # 不再修改用户证书文件夹权限
+    # fix_user_permissions
     fix_system_permissions14 $MODDIR/certificates
     compatible
 
